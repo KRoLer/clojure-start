@@ -14,13 +14,15 @@ This application was created for tests and learn _Clojure_ purpose only.
 
 ## Sample response
 For user *swrwwt* should be the next input:
->disbag 39
->divanraj 37
->damour 31
->liamhanda 30
->edinabazi 27
->Himitiom 27
->omninos_abhinav 26
->marcushanda 26
->FilipProchazka 24
->truemarmalade 24
+```
+disbag 39
+divanraj 37
+damour 31
+liamhanda 30
+edinabazi 27
+Himitiom 27
+omninos_abhinav 26
+marcushanda 26
+FilipProchazka 24
+truemarmalade 24
+```
