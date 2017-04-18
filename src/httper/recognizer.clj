@@ -1,5 +1,5 @@
-(ns httper.recognizer)
-(use '[clojure.string :only (split triml)])
+(ns httper.recognizer
+  (:require [clojure.string :as str]))
 
 ;; Matcher should recognize and destruct URL by:
 ;; host: domain
@@ -7,36 +7,35 @@
 ;; queryparam: name/value pairs of query
 
 (defprotocol Recognize
-  (recognize [this URL])
-  (extractParam [this paramType paramPattern testURL]))
+  (recognize [_ URL])
+  (extract-params [this paramType paramPattern testURL]))
 
-(deftype Pattern [pattern]
+(defrecord Pattern [pattern]
     Recognize
     (recognize [this URL]
               (->>
-                  (split pattern #";")
-                  (map #(re-find #"(.+)\((.+)\)" (triml %)))
-                  (map (fn[[o k v]] [(keyword k) v]))
-                  (map (fn[[k v]] (extractParam this k v URL)))
+                  (str/split pattern #";")
+                  (map #(re-find #"(.+)\((.+)\)" (str/triml %)))
+                  (map (fn[[_ k v]] [(keyword k) v]))
+                  (map (fn[[k v]] (extract-params this k v URL)))
                   ((fn [list] (if-not (some empty? list)
                                 (mapcat (fn[e] e) (rest list))
                                 nil)))
               )
     )
-    (extractParam [this paramType paramPattern testURL]
-               (case paramType
-                    :host (if (boolean (re-find (re-pattern (str "//" paramPattern "/")) testURL))  [paramType paramPattern] [])
-                    (->>
+    (extract-params [_ paramType paramPattern testURL]
+               (if (= paramType :host)
+                 (if (boolean (re-find (re-pattern (str "//" paramPattern "/")) testURL))  [paramType paramPattern] [])
+                 (->>
                       (zipmap
                         (->>
                           (re-seq #"\?(.[^\/]+)" paramPattern)
-                          (map (fn [[k v]] (keyword v)))
-                          (into []))
-                        (let [reg (clojure.string/replace paramPattern #"\?(.[^\/]+)"  "[\\/\\&\\?]*(.[^\\/\\?\\&]+)")]
+                          (mapv (fn [[k v]] (keyword v))))
+                        (let [reg (str/replace paramPattern #"\?(.[^\/]+)"  "[\\/\\&\\?]*(.[^\\/\\?\\&]+)")]
                           (rest (flatten (re-seq (re-pattern reg) testURL )))))
                         (into [])
                       )
-                 )
+                )
     )
 )
 
